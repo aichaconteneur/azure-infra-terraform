@@ -1,0 +1,9 @@
+repos:
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.96.1
+    hooks:
+      - id: terraform_tflint
+        files: ^starter/terraform/
+        args:
+          - --args=--config=__GIT_WORKING_DIR__/starter/terraform/.tflint.hcl
+          - --args=--chdir=__GIT_WORKING_DIR__/starter/terraform

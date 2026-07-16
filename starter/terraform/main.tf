@@ -1,0 +1,80 @@
+
+locals {
+  tags = merge(
+    {
+      managed_by  = "terraform"
+      environment = "tp"
+      owner       = var.owner
+    },
+    var.tags
+  )
+}
+
+
+
+# Resource Group pré-créé par le formateur — ne jamais le gérer en Terraform
+data "azurerm_resource_group" "rg" {
+  name = var.resource_group_name
+}
+
+# Plan App Service partagé (dans un Resource Group séparé)
+data "azurerm_service_plan" "shared" {
+  name                = var.shared_plan_name
+  resource_group_name = var.shared_rg_name
+}
+
+
+
+module "storage" {
+  source = "./modules/storage"
+
+  owner               = var.owner
+  resource_group_name = data.azurerm_resource_group.rg.name
+  location            = data.azurerm_resource_group.rg.location
+  tags                = local.tags
+}
+
+
+module "app_service" {
+  source = "./modules/app-service"
+
+  owner               = var.owner
+  resource_group_name = data.azurerm_resource_group.rg.name
+  service_plan_id     = data.azurerm_service_plan.shared.id
+  tags                = local.tags
+}
+
+
+
+module "function_app" {
+  source = "./modules/function-app"
+
+  owner               = var.owner
+  resource_group_name = data.azurerm_resource_group.rg.name
+  location            = data.azurerm_resource_group.rg.location
+  service_plan_id     = data.azurerm_service_plan.shared.id
+  tags                = local.tags
+}
+
+
+
+
+module "container" {
+  source = "./modules/container"
+
+  owner               = var.owner
+  resource_group_name = data.azurerm_resource_group.rg.name
+  location            = data.azurerm_resource_group.rg.location
+  tags                = local.tags
+}
+
+
+
+module "network" {
+  source = "./modules/network"
+
+  owner               = var.owner
+  resource_group_name = data.azurerm_resource_group.rg.name
+  location            = data.azurerm_resource_group.rg.location
+  tags                = local.tags
+}
